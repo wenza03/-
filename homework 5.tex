@@ -1,0 +1,360 @@
+\documentclass{article}
+\usepackage[UTF8]{ctex}
+\usepackage{anyfontsize}
+\usepackage{amsmath,mathtools}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage[ruled,linesnumbered]{algorithm2e}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{listings,color}
+\usepackage{tikz}
+\definecolor{mypurple}{rgb}{186,85,211}
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\geometry{a4paper,left=2cm,right=2cm,top=3cm,bottom=3cm}
+\lstset{
+    language=C++,
+    backgroundcolor=\color[RGB]{245,245,244},
+    basicstyle          =   \sffamily,          % 基本代码风格
+    keywordstyle        =   \color{ purple},         % 关键字风格
+    commentstyle        =   \rmfamily\itshape,  % 注释的风格，斜体
+    stringstyle         =   \ttfamily,  % 字符串风格
+    flexiblecolumns,                % 别问为什么，加上这个
+    numbers             =   left,   % 行号的位置在左边
+    showspaces          =   false,  % 是否显示空格，显示了有点乱，所以不现实了
+    numberstyle         =   \zihao{-5}\ttfamily,    % 行号的样式，小五号，tt等宽字体
+    showstringspaces    =   false,
+    captionpos          =   t,      % 这段代码的名字所呈现的位置，t指的是top上面
+    frame               =   lrtb,   % 显示边框
+}
+\title{\textbf{算法设计与分析课程作业 作业5}}
+\author{162140224 刘昊文}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{零钱兑换}
+这道题可以看作一个完全背包问题，状态dp[i][j]表示前i个物品金额为j时需要的最少的硬币个数,而这个状态只能由
+dp[i-1][j-coins[i]]+1或dp[i-1][j]状态转移得来
+所以易得状态转移方程
+
+\begin{equation}
+    dp[i][j]=max(dp[i-1][j-k \times coins[i]]+k\times coins[i],dp[i-1][j])  \qquad k\leq \frac{j}{coins[i]}
+    \nonumber
+\end{equation}
+
+
+这道题可以减去物品的纬度，压缩一维
+但需要注意的是在枚举内层当前状态金额时,
+需要从coins[i]枚举到总金额，进行正向状态转移,
+使得当前状态可以利用当前这一层的状态,这代表硬币能重复拿取，符合题意
+
+一维状态转移方程如下
+\begin{equation}
+    dp[j]=min(dp[j-coins[i]]+1,dp[j])
+    \nonumber
+\end{equation}
+
+
+\begin{figure}[H]
+    \begin{flushleft}
+     %\centering表示居中
+    \includegraphics[height=6cm,width=16cm]{零钱兑换.png}
+    % [height=4.5cm]表示高度
+    %[width=9.5cm]表示宽度
+    %{111.eps}表示eps格式的图片，名为111
+    %\caption{pic1}
+    %图片的名称
+    %\label{2}
+    %图片的标签，用于文章中的引用，注意到标签的数字与实际文章显示的数字可能不同
+    \end{flushleft}
+\end{figure}
+
+
+\newpage
+\section{分割等和子集}
+这道题需要将一个数组分为两个和相等的子数组，假设这两个子数组为num1和num2，数组总和为tot
+
+
+两个子数组和需要相等，易得这两个子数组和都要为tot/2。
+
+易得当tot为奇数时，不可能成立
+当tot为偶数时，可转换为01背包问题，判断能否凑成tot/2，原问题得解
+
+
+在01背包问题中，递归方程为
+\begin{equation}
+    dp[i][j]=max(dp[i-1][j-nums[i]]+nums[i],dp[i-1][j])
+\nonumber
+\end{equation}
+
+
+事实上，我们可以减去物品的纬度，将其压缩至一维
+递归方程如下
+\begin{equation}
+    dp[j]=max(dp[j],dp[j-nums[i]]+nums[i])
+\nonumber
+\end{equation}
+
+
+需要注意的是，此时外层i循环不同物品时，内层j需要倒序循环，改变状态更新次序，
+使当前状态不可以利用当前这一层的状态，防止一个数字多次被拿，与第一题正好相反
+\begin{figure}[H]
+    \begin{flushleft}
+     %\centering表示居中
+    \includegraphics[height=6cm,width=16cm]{分割等和子集.png}
+    % [height=4.5cm]表示高度
+    %[width=9.5cm]表示宽度
+    %{111.eps}表示eps格式的图片，名为111
+    %\caption{pic1}
+    %图片的名称
+    %\label{2}
+    %图片的标签，用于文章中的引用，注意到标签的数字与实际文章显示的数字可能不同
+    \end{flushleft}
+\end{figure}
+
+
+
+
+
+
+\newpage
+
+
+\section{最长回文子序列}
+这道题需要求出序列中的最长回文子序列，通过观察可得，对于一个序列，最长回文子序列等于它与它的逆序列的最长公共子序列
+
+
+因此这题可以转换成一个求最长公共子序列的问题
+
+对于求最长公共子序列，状态dp[i][j]表示当前第一个序列从1到i，第二个序列从1到j，最长回文子序列
+的长度
+所以容易得到状态转移方程为
+\begin{equation}
+dp[i][j] = \begin{cases}
+dp[i-1][j-1]+1 & \text{if }  s1[i]=s2[j]\\
+max(dp[i-1][j],dp[i][j-1]) & \text{if } s1[i] \neq s2[j],\\
+
+\end{cases}
+\nonumber
+\end{equation}
+
+原问题得解
+
+\begin{figure}[H]
+    \begin{flushleft}
+    \includegraphics[height=6cm,width=16cm]{最长回文子序列.png}
+  \end{flushleft}
+\end{figure}
+\newpage
+\section{打家劫舍}
+
+
+在这道题中,对于一个房屋,只有它旁边的房子未被闯入时
+,才能闯入该房间
+
+
+对于状态$dp[i][0]$ 第一维i表示前i个房间，第二维0表示第i个房间未被闯入，1表示被闯入
+
+
+当第i个房间未被闯入时，第i-1个房间是否闯入都符合题意，所以选择其中较大值即 $max(dp[i-1][1],dp[i-1][0])$
+
+
+当第i个房间被闯入时，第i-1个房间只能是未被闯入，所以取前i-1个房间未被闯入的值加上第i个房间的金额即$dp[i-1][0]+nums[i]$
+
+
+所以易得状态转移方程
+\begin{equation}
+    \begin{cases}
+        dp[i][1]=dp[i-1][0]+nums[i] & \text{}\\
+        dp[i][0]=max(dp[i-1][1],dp[i-1][0]) & \text{} \\
+    
+    \end{cases}
+    \nonumber
+\end{equation}
+
+
+\begin{figure}[H]
+    \begin{flushleft}
+     %\centering表示居中
+    \includegraphics[height=6cm,width=16cm]{打家劫舍.png}
+    % [height=4.5cm]表示高度
+    %[width=9.5cm]表示宽度
+    %{111.eps}表示eps格式的图片，名为111
+    %\caption{pic1}
+    %图片的名称
+    %图片的标签，用于文章中的引用，注意到标签的数字与实际文章显示的数字可能不同
+    \end{flushleft}
+\end{figure}
+
+
+
+\newpage
+\section{乘积最大子数组}
+这道题需要找到乘积最大的子数组，数组中即存在正数，也存在负数。所以存在乘积为负数的时候
+，此时可能会负负得正得出更大值得情况
+所以需要维护出子数组的最大值与最小值，设$dp[i][0]$表示第i个元素结尾的乘积最大子数组
+$dp[i][1]$表示第i个元素结尾的乘积最小子数组
+dp[i][1]和dp[i][0]可由dp[i-1][0]和dp[i-1][1]得到，除此之外，还可以不选择前i-1个元素，只选择
+num[i]，所以可得状态转移方程如下:
+\begin{equation}
+    \begin{cases}
+        dp[i][1]=max(nums[i],max(dp[i-1][1]*nums[i],dp[i-1][0]*nums[i])) & \text{}\\
+        dp[i][0]=min(nums[i],min(dp[i-1][1]*nums[i],dp[i-1][0]*nums[i])) & \text{} \\
+    
+    \end{cases}
+    \nonumber
+\end{equation}
+\begin{figure}[H]
+    \begin{flushleft}
+     %\centering表示居中
+    \includegraphics[height=6cm,width=16cm]{乘积最大子数组.png}
+    % [height=4.5cm]表示高度
+    %[width=9.5cm]表示宽度
+    %{111.eps}表示eps格式的图片，名为111
+    %\caption{pic1}
+    %图片的名称
+    %图片的标签，用于文章中的引用，注意到标签的数字与实际文章显示的数字可能不同
+    \end{flushleft}
+\end{figure}
+
+
+\newpage
+\section{最大子数组和}
+
+这道题需要找出和最大的子数组，状态dp[i]表示从1到i最大的连续子数组和，易得当dp[i]大于0时
+则其对后面的答案有贡献
+
+而当dp[i]小于0时，则不计算其的负贡献，所以易得递归方程如下
+\begin{equation}
+    dp[i]=
+    \begin{cases}
+    0 & \text{if } dp[i-1] < 0,\\
+    dp[i-1]+num[i] & \text{if } dp[i-1] > 0,\\
+    \end{cases}
+    \nonumber
+\end{equation}
+
+
+事实上，观察递归方程，我们可以通过一个变量tot来遍历整个数组，遍历整个数组tot=tot+num[i]
+当tot<0时则将tot清零，否则继续循环
+\begin{figure}[H]
+    \begin{flushleft}
+     %\centering表示居中
+    \includegraphics[height=6cm,width=16cm]{最大子数组和.png}
+    % [height=4.5cm]表示高度
+    %[width=9.5cm]表示宽度
+    %{111.eps}表示eps格式的图片，名为111
+    %\caption{pic1}
+    %图片的名称
+    %图片的标签，用于文章中的引用，注意到标签的数字与实际文章显示的数字可能不同
+    \end{flushleft}
+\end{figure}
+
+
+
+\newpage
+\section{三角形最小路径和}
+对于这道题，从上往下走，分析较为复杂，考虑从下往上走
+
+一个点只能来自其左下与右下的点即triangle[i+1][j]与triangle[i+1][j+1]
+即
+\begin{center}
+$triangle[1][1]=triangle[1][1]+min(triangle[2][1],triangle[2][2])$
+$triangle[2][1]=triangle[2][1]+min(triangle[3][1],triangle[3][2])$
+$triangle[2][2]=triangle[2][2]+min(triangle[3][2],triangle[3][3])$\\
+......
+\end{center}
+
+
+可推出方程triangle[i][j]=triangle[i][j]+min(triangle[i+1][j],triangle[i+1][j+1])
+
+状态转移方程如下
+\begin{equation}
+    triangle[i][j]=triangle[i][j]+min(triangle[i+1][j],triangle[i+1][j+1])
+    \nonumber
+\end{equation}
+
+
+遍历方向为:从下到上从左到右
+\begin{figure}[H]
+    \begin{flushleft}
+     %\centering表示居中
+    \includegraphics[height=6cm,width=16cm]{三角形最小路径和.png}
+    % [height=4.5cm]表示高度
+    %[width=9.5cm]表示宽度
+    %{111.eps}表示eps格式的图片，名为111
+    %\caption{pic1}
+    %图片的名称
+    %图片的标签，用于文章中的引用，注意到标签的数字与实际文章显示的数字可能不同
+    \end{flushleft}
+\end{figure}
+
+\newpage
+\section{最长递增子序列}
+
+
+记dp[i]表示对于前i个数，在选择第i个数的情况下,得到最长的单调不升子序列的长度,
+
+
+当第i个数是子序列的第一项,dp[i]=1
+
+
+第i个数不是子序列的第一项,选择的第i个数,假设其前一项为第j个数，即第i个数接在第j个数结尾的序列后面
+枚举这样的j，可以得到状态转移方程:dp[i]=dp[j]+1
+\begin{equation}
+    dp[i]=max(dp[i],dp[j]+1)  \qquad j<i \qquad if (nums[i]>nums[j]) 
+    \nonumber
+\end{equation}
+
+上述算法时间复杂度为O($n^2$)
+
+
+事实上存在着O($nlog(n)$)的解法
+\begin{lstlisting}[language=C++,numbers=left,breaklines=true]
+class Solution {
+public:
+    int lengthOfLIS(vector<int>& nums) {
+        int lengt=nums.size();
+        int len=0,dp[2501];
+        dp[0]=nums[0];
+        for(int i=1;i<lengt;i++)
+        {
+            if(dp[len]<nums[i]) dp[++len]=nums[i];
+            else dp[lower_bound(dp,dp+len,nums[i])-dp]=nums[i];
+        }
+        return len+1;
+    }
+};   
+\end{lstlisting}
+O($n^2$)解法耗时如下
+\begin{figure}[H]
+    \begin{flushleft}
+     %\centering表示居中
+    \includegraphics[height=6cm,width=16cm]{最长递增子序列.png}
+    % [height=4.5cm]表示高度
+    %[width=9.5cm]表示宽度
+    %{111.eps}表示eps格式的图片，名为111
+    %\caption{pic1}
+    %图片的名称
+    %图片的标签，用于文章中的引用，注意到标签的数字与实际文章显示的数字可能不同
+    \end{flushleft}
+\end{figure}
+O($nlog (n)$)解法耗时如下
+\begin{figure}[H]
+    \begin{flushleft}
+     %\centering表示居中
+    \includegraphics[height=6cm,width=16cm]{最长递增子序列2.png}
+    % [height=4.5cm]表示高度
+    %[width=9.5cm]表示宽度
+    %{111.eps}表示eps格式的图片，名为111
+    %\caption{pic1}
+    %图片的名称
+    %图片的标签，用于文章中的引用，注意到标签的数字与实际文章显示的数字可能不同
+    \end{flushleft}
+\end{figure}
+
+\end{document}
